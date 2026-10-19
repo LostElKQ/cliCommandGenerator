@@ -7,6 +7,7 @@ node_modules
 .wrangler
 /.svelte-kit
 /build
+/coverage/
 
 # OS
 .DS_Store
@@ -29,3 +30,5 @@ project.inlang/cache/
 
 *storybook.log
 storybook-static
+
+.vscode/settings.json

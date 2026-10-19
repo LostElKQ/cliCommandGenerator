@@ -23,8 +23,11 @@
     "test:unit": "vitest"
   },
   "dependencies": {
+    "@lucide/svelte": "^1.59.0",
     "@skeletonlabs/skeleton": "^5.0.1",
-    "@skeletonlabs/skeleton-svelte": "^5.0.1"
+    "@skeletonlabs/skeleton-svelte": "^5.0.1",
+    "lz-string": "^1.5.0",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@chromatic-com/storybook": "latest",
@@ -41,13 +44,16 @@
     "@tailwindcss/forms": "^0.5.11",
     "@tailwindcss/typography": "^0.5.20",
     "@tailwindcss/vite": "^4.3.3",
+    "@types/lz-string": "^1.5.0",
     "@types/node": "^26.6.5",
+    "@vite-pwa/sveltekit": "^1.1.0",
     "@vitest/browser-playwright": "^5.0.5",
     "@vitest/coverage-v8": "^5.0.5",
     "eslint": "^10.13.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-storybook": "^10.6.2",
     "eslint-plugin-svelte": "^3.23.1",
+    "eslint-plugin-unicorn": "^78.0.0",
     "globals": "^17.13.0",
     "playwright": "^1.64.1",
     "prettier": "^3.9.10",

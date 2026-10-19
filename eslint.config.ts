@@ -6,7 +6,7 @@ import ts from "typescript-eslint";
 
 const gitignorePath = path.resolve(import.meta.dirname, ".gitignore");
 
-export default defineConfig(
+const config = defineConfig(
   includeIgnoreFile(gitignorePath),
   ts.configs.strict,
   svelte.configs.recommended,
@@ -63,7 +63,7 @@ export default defineConfig(
         },
       ],
       "@typescript-eslint/class-literal-property-style": "error",
-      "@typescript-eslint/consistent-generic-constructors": ["error", "type-annotation"],
+      "@typescript-eslint/consistent-generic-constructors": ["error", "constructor"],
       "@typescript-eslint/consistent-indexed-object-style": "error",
       "@typescript-eslint/consistent-type-definitions": ["error", "type"],
       "@typescript-eslint/consistent-type-imports": "error",
@@ -96,3 +96,5 @@ export default defineConfig(
     },
   },
 );
+
+export default config;
