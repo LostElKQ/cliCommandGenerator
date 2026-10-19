@@ -122,17 +122,20 @@ export function evaluateRules(
   const rulesById = new Map<string, CommandRule>(rules.map((r) => [r.id, r]));
   const evaluations: EvaluationMap = {};
 
-  // 1-й проход: вычисление базовой активности каждого правила
+  // 1-й проход: вычисление базовой активности и модификации каждого правила
   const activeStatus = new Map<string, boolean>();
+  const modifiedStatus = new Map<string, boolean>();
   for (const rule of rules) {
     const val = values[rule.id];
     activeStatus.set(rule.id, isRuleActive(rule, val));
+    modifiedStatus.set(rule.id, isValueModified(val, rule.defaultValue));
   }
 
   // 2-й проход: зависимости, конфликты и валидация
   for (const rule of rules) {
     const val = values[rule.id];
     const active = activeStatus.get(rule.id) ?? false;
+    const isModified = modifiedStatus.get(rule.id) ?? false;
     let isEnabled = true;
     let isVisible = true;
     let disabledReason: string | undefined;
@@ -161,7 +164,11 @@ export function evaluateRules(
       for (const conflictId of rule.conflictsWith) {
         const conflictRule = rulesById.get(conflictId);
         const conflictActive = activeStatus.get(conflictId) ?? false;
-        if (conflictActive) {
+        const conflictModified = modifiedStatus.get(conflictId) ?? false;
+
+        // Конфликт блокирует правило, если конфликтное правило активно и
+        // либо конфликтное правило явно изменено пользователем, либо текущее не изменено
+        if (conflictActive && (conflictModified || !isModified)) {
           conflictingRules.push(
             conflictRule ? conflictRule.flag || conflictRule.label : conflictId,
           );
