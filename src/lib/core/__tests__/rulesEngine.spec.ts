@@ -4,7 +4,7 @@ import {
   evaluateRules,
   isRuleActive,
   isValueModified,
-} from "#lib/core/rules-engine.js";
+} from "#lib/core/rulesEngine.js";
 import { mockDockerCommand } from "./fixtures.js";
 
 describe("rules engine", () => {
@@ -38,12 +38,12 @@ describe("rules engine", () => {
     expect(isRuleActive(boolRule, false)).toBe(false);
     expect(isRuleActive(boolRule, true)).toBe(true);
 
-    const strRule = mockDockerCommand.categories[0]?.rules[2];
-    expect(strRule).toBeDefined();
-    if (!strRule) return;
-    expect(isRuleActive(strRule, "")).toBe(false);
-    expect(isRuleActive(strRule, "  ")).toBe(false);
-    expect(isRuleActive(strRule, "my-app")).toBe(true);
+    const stringRule = mockDockerCommand.categories[0]?.rules[2];
+    expect(stringRule).toBeDefined();
+    if (!stringRule) return;
+    expect(isRuleActive(stringRule, "")).toBe(false);
+    expect(isRuleActive(stringRule, "  ")).toBe(false);
+    expect(isRuleActive(stringRule, "my-app")).toBe(true);
 
     const kvRule = mockDockerCommand.categories[2]?.rules[0];
     expect(kvRule).toBeDefined();

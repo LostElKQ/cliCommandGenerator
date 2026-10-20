@@ -1,16 +1,17 @@
 import type { CommandDefinition, CommandRule, EvaluationMap } from "./types.js";
 import { validateRuleValue } from "./schemas.js";
+import { isNullish } from "#lib/utilities.js";
 
 /**
- * Получить плоский список всех правил команды
- */
+Получить плоский список всех правил команды
+*/
 export function getAllRules(definition: CommandDefinition): CommandRule[] {
   return definition.categories.flatMap((cat) => cat.rules);
 }
 
 /**
- * Найти правило по его идентификатору
- */
+Найти правило по его идентификатору
+*/
 export function findRuleById(
   definition: CommandDefinition,
   ruleId: string,
@@ -23,87 +24,94 @@ export function findRuleById(
 }
 
 /**
- * Определяет, считается ли правило "активным" (включенным пользователем)
- */
+Определяет, считается ли правило "активным" (включенным пользователем)
+*/
 export function isRuleActive(rule: CommandRule, value: unknown): boolean {
   if (value === undefined || value === null) {
     return false;
   }
 
   switch (rule.type) {
-    case "boolean":
+    case "boolean": {
       return value === true;
+    }
 
     case "string":
-    case "path":
+    case "path": {
       return typeof value === "string" && value.trim().length > 0;
+    }
 
-    case "number":
-      if (typeof value === "number") {
-        return !Number.isNaN(value);
-      }
-      return typeof value === "string" && value.trim().length > 0 && !Number.isNaN(Number(value));
+    case "number": {
+      return typeof value === "number"
+        ? !Number.isNaN(value)
+        : typeof value === "string" && value.trim().length > 0 && !Number.isNaN(Number(value));
+    }
 
-    case "select":
+    case "select": {
       return value !== "" && value !== undefined && value !== null;
+    }
 
-    case "key-value-map":
-      if (!Array.isArray(value)) return false;
-      return value.some(
-        (kv) => kv && typeof kv === "object" && String(kv.key || "").trim().length > 0,
-      );
+    case "key-value-map": {
+      return Array.isArray(value)
+        ? value.some((kv) => kv && typeof kv === "object" && String(kv.key || "").trim().length > 0)
+        : false;
+    }
 
-    case "list":
-      if (!Array.isArray(value)) return false;
-      return value.length > 0;
+    case "list": {
+      return Array.isArray(value) ? value.length > 0 : false;
+    }
 
-    default:
+    default: {
       return Boolean(value);
+    }
   }
 }
 
 /**
- * Сравнение значения с дефолтным
- */
+Сравнение значения с дефолтным
+*/
 export function isValueModified(value: unknown, defaultValue: unknown): boolean {
   if (value === defaultValue) return false;
-  if (
-    (value === undefined || value === null || value === "") &&
-    (defaultValue === undefined || defaultValue === null || defaultValue === "")
-  ) {
-    return false;
-  }
-  return JSON.stringify(value) !== JSON.stringify(defaultValue);
+  return isNullish(value) && isNullish(defaultValue)
+    ? false
+    : JSON.stringify(value) !== JSON.stringify(defaultValue);
 }
 
 /**
- * Получить значения по умолчанию для всех правил команды
- */
+Получить значения по умолчанию для всех правил команды
+*/
 export function getDefaultValues(definition: CommandDefinition): Record<string, unknown> {
   const result: Record<string, unknown> = {};
   const rules = getAllRules(definition);
 
   for (const rule of rules) {
     if (rule.defaultValue !== undefined) {
-      result[rule.id] = JSON.parse(JSON.stringify(rule.defaultValue));
-    } else {
-      switch (rule.type) {
-        case "boolean":
-          result[rule.id] = false;
-          break;
-        case "number":
-          result[rule.id] = undefined;
-          break;
-        case "select":
-          result[rule.id] = rule.options?.[0]?.value ?? "";
-          break;
-        case "key-value-map":
-        case "list":
-          result[rule.id] = [];
-          break;
-        default:
-          result[rule.id] = "";
-          break;
+      result[rule.id] = structuredClone(rule.defaultValue);
+      continue;
+    }
+
+    switch (rule.type) {
+      case "boolean": {
+        result[rule.id] = false;
+        continue;
+      }
+      case "number": {
+        result[rule.id] = undefined;
+        continue;
+      }
+      case "select": {
+        result[rule.id] = rule.options?.[0]?.value ?? "";
+        continue;
+      }
+      case "key-value-map":
+      case "list": {
+        result[rule.id] = [];
+        continue;
+      }
+      case "string":
+      case "path": {
+        result[rule.id] = "";
+        continue;
       }
     }
   }
@@ -112,8 +120,8 @@ export function getDefaultValues(definition: CommandDefinition): Record<string, 
 }
 
 /**
- * Вычисляет состояние доступности, видимости и валидности для всех правил
- */
+Вычисляет состояние доступности, видимости и валидности для всех правил
+*/
 export function evaluateRules(
   definition: CommandDefinition,
   values: Record<string, unknown>,
@@ -126,14 +134,14 @@ export function evaluateRules(
   const activeStatus = new Map<string, boolean>();
   const modifiedStatus = new Map<string, boolean>();
   for (const rule of rules) {
-    const val = values[rule.id];
-    activeStatus.set(rule.id, isRuleActive(rule, val));
-    modifiedStatus.set(rule.id, isValueModified(val, rule.defaultValue));
+    const value = values[rule.id];
+    activeStatus.set(rule.id, isRuleActive(rule, value));
+    modifiedStatus.set(rule.id, isValueModified(value, rule.defaultValue));
   }
 
   // 2-й проход: зависимости, конфликты и валидация
   for (const rule of rules) {
-    const val = values[rule.id];
+    const value = values[rule.id];
     const active = activeStatus.get(rule.id) ?? false;
     const isModified = modifiedStatus.get(rule.id) ?? false;
     let isEnabled = true;
@@ -143,11 +151,13 @@ export function evaluateRules(
     // Проверка dependsOn
     if (rule.dependsOn && rule.dependsOn.length > 0) {
       const missingDependencies: string[] = [];
-      for (const depId of rule.dependsOn) {
-        const depRule = rulesById.get(depId);
-        const depActive = activeStatus.get(depId) ?? false;
-        if (!depActive) {
-          missingDependencies.push(depRule ? depRule.flag || depRule.label : depId);
+      for (const dependencyId of rule.dependsOn) {
+        const dependencyRule = rulesById.get(dependencyId);
+        const dependencyActive = activeStatus.get(dependencyId) ?? false;
+        if (!dependencyActive) {
+          missingDependencies.push(
+            dependencyRule ? dependencyRule.flag || dependencyRule.label : dependencyId,
+          );
         }
       }
 
@@ -186,11 +196,11 @@ export function evaluateRules(
     let validationError: string | undefined;
 
     if (isEnabled) {
-      if (rule.required && !active) {
+      if (!active && rule.required) {
         isValid = false;
         validationError = rule.validator?.errorMessage ?? "Обязательный параметр";
       } else if (active) {
-        const validation = validateRuleValue(rule, val);
+        const validation = validateRuleValue(rule, value);
         isValid = validation.isValid;
         validationError = validation.error;
       }
@@ -203,7 +213,7 @@ export function evaluateRules(
       disabledReason,
       isValid,
       validationError,
-      isModified: isValueModified(val, rule.defaultValue),
+      isModified: isValueModified(value, rule.defaultValue),
       active: active && isEnabled,
     };
   }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { assembleCommand } from "#lib/core/assembler.js";
-import { evaluateRules, getDefaultValues, isValueModified } from "#lib/core/rules-engine.js";
+import { evaluateRules, getDefaultValues, isValueModified } from "#lib/core/rulesEngine.js";
 import { CommandDefinitionSchema } from "#lib/core/schemas.js";
 import { COMMANDS, getCommandById, getDefaultCommand } from "#lib/data/registry.js";
 
@@ -8,8 +8,8 @@ describe("command registry & datasets", () => {
   it("validates that all registered commands conform to CommandDefinitionSchema", () => {
     expect(COMMANDS.length).toBeGreaterThanOrEqual(3);
 
-    for (const cmd of COMMANDS) {
-      const parsed = CommandDefinitionSchema.safeParse(cmd);
+    for (const command of COMMANDS) {
+      const parsed = CommandDefinitionSchema.safeParse(command);
       expect(parsed.success).toBe(true);
     }
   });
@@ -32,9 +32,9 @@ describe("command registry & datasets", () => {
   });
 
   it("provides default command", () => {
-    const defaultCmd = getDefaultCommand();
-    expect(defaultCmd).toBeDefined();
-    expect(defaultCmd.id).toBe("docker-run");
+    const defaultCommand = getDefaultCommand();
+    expect(defaultCommand).toBeDefined();
+    expect(defaultCommand.id).toBe("docker-run");
   });
 
   it("assembles docker-run with default values and flags required missing image", () => {
@@ -146,22 +146,23 @@ describe("command registry & datasets", () => {
   });
 
   it("ensures defaultValue matches rule type for all registered commands", () => {
-    for (const cmd of COMMANDS) {
-      for (const cat of cmd.categories) {
+    for (const command of COMMANDS) {
+      for (const cat of command.categories) {
         for (const rule of cat.rules) {
-          if (rule.defaultValue !== undefined && rule.defaultValue !== "") {
-            if (rule.type === "number") {
-              expect(
-                typeof rule.defaultValue,
-                `Rule '${rule.id}' in '${cmd.id}' has type 'number' but defaultValue is '${typeof rule.defaultValue}'`,
-              ).toBe("number");
-            }
-            if (rule.type === "boolean") {
-              expect(
-                typeof rule.defaultValue,
-                `Rule '${rule.id}' in '${cmd.id}' has type 'boolean' but defaultValue is '${typeof rule.defaultValue}'`,
-              ).toBe("boolean");
-            }
+          if (rule.defaultValue === undefined || rule.defaultValue === "") {
+            continue;
+          }
+
+          if (rule.type === "number") {
+            expect(
+              typeof rule.defaultValue,
+              `Rule '${rule.id}' in '${command.id}' has type 'number' but defaultValue is '${typeof rule.defaultValue}'`,
+            ).toBe("number");
+          } else if (rule.type === "boolean") {
+            expect(
+              typeof rule.defaultValue,
+              `Rule '${rule.id}' in '${command.id}' has type 'boolean' but defaultValue is '${typeof rule.defaultValue}'`,
+            ).toBe("boolean");
           }
         }
       }

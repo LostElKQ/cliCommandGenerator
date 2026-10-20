@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/no-unsafe-string-replacement */
 import type { Handle } from "@sveltejs/kit/hooks";
 import { getTextDirection } from "#lib/paraglide/runtime.js";
 import { paraglideMiddleware } from "#lib/paraglide/server.js";

@@ -6,7 +6,7 @@ import {
   decodeStateFromHash,
   encodeStateToHash,
   extractPayloadFromFragment,
-} from "#lib/state/url-sync.js";
+} from "#lib/state/urlSync.js";
 
 describe("url-sync", () => {
   const sampleState: SerializedCommandState = {
@@ -90,7 +90,7 @@ describe("url-sync", () => {
   });
 
   it("extracts payload correctly from various formats", () => {
-    expect(extractPayloadFromFragment("")).toBeNull();
+    expect(extractPayloadFromFragment("")).toBeUndefined();
     expect(extractPayloadFromFragment("#c=abc")).toBe("abc");
     expect(extractPayloadFromFragment("?c=abc")).toBe("abc");
     expect(extractPayloadFromFragment("c=abc")).toBe("abc");

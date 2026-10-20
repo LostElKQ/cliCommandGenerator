@@ -10,8 +10,8 @@ export type UrlSyncResult =
 const HASH_KEY = "c=";
 
 /**
- * Сжатие объекта состояния команды в URI-encoded строку
- */
+Сжатие объекта состояния команды в URI-encoded строку
+*/
 export function encodeStateToHash(state: SerializedCommandState): string {
   const json = JSON.stringify(state);
   const compressed = LZString.compressToEncodedURIComponent(json);
@@ -19,14 +19,14 @@ export function encodeStateToHash(state: SerializedCommandState): string {
 }
 
 /**
- * Извлечение сжатой строки из hash или query фрагмента
- */
-export function extractPayloadFromFragment(fragment: string): string | null {
+Извлечение сжатой строки из hash или query фрагмента
+*/
+export function extractPayloadFromFragment(fragment: string): string | undefined {
   const trimmed =
     fragment.startsWith("#") || fragment.startsWith("?") ? fragment.slice(1) : fragment;
 
   if (!trimmed) {
-    return null;
+    return undefined;
   }
 
   // Если это формат "c=<compressed>"
@@ -35,10 +35,10 @@ export function extractPayloadFromFragment(fragment: string): string | null {
   }
 
   // Попытка найти параметр c= в URLSearchParams
-  const params = new URLSearchParams(trimmed);
-  const paramVal = params.get("c");
-  if (paramVal) {
-    return paramVal;
+  const parameters = new URLSearchParams(trimmed);
+  const parameterValue = parameters.get("c");
+  if (parameterValue) {
+    return parameterValue;
   }
 
   // Либо фрагмент передан как чистая сжатая строка
@@ -46,8 +46,8 @@ export function extractPayloadFromFragment(fragment: string): string | null {
 }
 
 /**
- * Декодирование и валидация состояния команды из URL
- */
+Декодирование и валидация состояния команды из URL
+*/
 export function decodeStateFromHash(fragment: string): UrlSyncResult {
   const payload = extractPayloadFromFragment(fragment);
   if (!payload || payload.trim() === "") {
@@ -85,33 +85,33 @@ export function decodeStateFromHash(fragment: string): UrlSyncResult {
       data: validated,
       type: "success",
     };
-  } catch (err) {
+  } catch (error) {
     return {
-      error: err instanceof Error ? err.message : "Неизвестная ошибка разбора URL",
+      error: error instanceof Error ? error.message : "Неизвестная ошибка разбора URL",
       type: "error",
     };
   }
 }
 
 /**
- * Формирование полной ссылки для шаринга
- */
+Формирование полной ссылки для шаринга
+*/
 export function buildShareUrl(currentUrl: string, state: SerializedCommandState): string {
   const encoded = encodeStateToHash(state);
   const url = new URL(currentUrl);
   url.hash = encoded;
-  return url.toString();
+  return url.href;
 }
 
 /**
- * Плавное обновление URL hash в браузере без добавления лишних записей в историю
- */
+Плавное обновление URL hash в браузере без добавления лишних записей в историю
+*/
 export function updateBrowserUrlHash(state: SerializedCommandState): void {
   if (typeof window === "undefined") {
     return;
   }
 
   const encoded = encodeStateToHash(state);
-  const newUrl = `${window.location.pathname}${window.location.search}#${encoded}`;
-  window.history.replaceState(null, "", newUrl);
+  const newUrl = `${location.pathname}${location.search}#${encoded}`;
+  history.replaceState(undefined, "", newUrl);
 }

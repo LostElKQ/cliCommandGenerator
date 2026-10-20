@@ -3,6 +3,7 @@ import { defineConfig, includeIgnoreFile } from "eslint/config";
 import globals from "globals";
 import path from "node:path";
 import ts from "typescript-eslint";
+import unicorn from "eslint-plugin-unicorn";
 
 const gitignorePath = path.resolve(import.meta.dirname, ".gitignore");
 
@@ -11,12 +12,50 @@ const config = defineConfig(
   ts.configs.strict,
   svelte.configs.recommended,
   svelte.configs.prettier,
+  unicorn.configs.recommended,
   {
     languageOptions: { globals: { ...globals.browser, ...globals.node } },
     rules: {
       // typescript-eslint strongly recommend that you do not use the no-undef lint rule on TypeScript projects.
       // see: https://typescript-eslint.io/troubleshooting/faqs/eslint/#i-get-errors-from-the-no-undef-rule-about-global-variables-not-being-defined-even-though-there-are-no-typescript-errors
       "no-undef": "off",
+
+      "unicorn/filename-case": [
+        "error",
+        {
+          case: "camelCase",
+          checkDirectories: false,
+        },
+      ],
+      "unicorn/prefer-ternary": "off",
+      "unicorn/prefer-logical-operator-over-ternary": "off",
+    },
+  },
+  {
+    files: ["**/*.svelte", "**/*.svelte.{test,spec}.{js,ts}"],
+    rules: {
+      "unicorn/filename-case": [
+        "error",
+        {
+          case: "pascalCase",
+          checkDirectories: false,
+          ignore: [/^\+.*/],
+        },
+      ],
+      "unicorn/name-replacements": [
+        "error",
+        {
+          replacements: {
+            param: false,
+            params: false,
+            prev: false,
+            prop: false,
+            props: false,
+            ref: false,
+            refs: false,
+          },
+        },
+      ],
     },
   },
   {

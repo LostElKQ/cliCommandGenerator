@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { CommandRule, SerializedCommandState } from "./types.js";
+import { isNullish } from "#lib/utilities.js";
 
 export const ArgumentTypeSchema = z.enum([
   "boolean",
@@ -74,13 +75,13 @@ export const SerializedCommandStateSchema = z.object({
 });
 
 /**
- * Валидация значения для конкретного правила
- */
+Валидация значения для конкретного правила
+*/
 export function validateRuleValue(
   rule: CommandRule,
   value: unknown,
 ): { isValid: false; error: string } | { isValid: true; error?: undefined } {
-  if (value === undefined || value === null || value === "") {
+  if (isNullish(value)) {
     return { isValid: true };
   }
 
@@ -88,20 +89,20 @@ export function validateRuleValue(
 
   switch (type) {
     case "number": {
-      const num = typeof value === "number" ? value : Number(value);
-      if (Number.isNaN(num)) {
+      const number_ = typeof value === "number" ? value : Number(value);
+      if (Number.isNaN(number_)) {
         return {
           isValid: false,
           error: validator?.errorMessage ?? "Значение должно быть числом",
         };
       }
-      if (validator?.min !== undefined && num < validator.min) {
+      if (validator?.min !== undefined && number_ < validator.min) {
         return {
           isValid: false,
           error: validator.errorMessage ?? `Минимальное значение: ${validator.min}`,
         };
       }
-      if (validator?.max !== undefined && num > validator.max) {
+      if (validator?.max !== undefined && number_ > validator.max) {
         return {
           isValid: false,
           error: validator.errorMessage ?? `Максимальное значение: ${validator.max}`,
@@ -112,11 +113,11 @@ export function validateRuleValue(
 
     case "string":
     case "path": {
-      const str = String(value);
+      const string_ = String(value);
       if (validator?.regex) {
         try {
           const reg = new RegExp(validator.regex);
-          if (!reg.test(str)) {
+          if (!reg.test(string_)) {
             return {
               isValid: false,
               error: validator.errorMessage ?? "Неверный формат значения",
@@ -176,12 +177,9 @@ export function validateRuleValue(
 }
 
 /**
- * Валидация и парсинг сохраненного состояния
- */
-export function parseSerializedState(raw: unknown): SerializedCommandState | null {
+Валидация и парсинг сохраненного состояния
+*/
+export function parseSerializedState(raw: unknown): SerializedCommandState | undefined {
   const result = SerializedCommandStateSchema.safeParse(raw);
-  if (!result.success) {
-    return null;
-  }
-  return result.data as SerializedCommandState;
+  return result.success ? result.data : undefined;
 }

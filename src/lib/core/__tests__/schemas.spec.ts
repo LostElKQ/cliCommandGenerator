@@ -44,7 +44,7 @@ describe("schemas and validation", () => {
       description: "Port number",
       validator: {
         min: 1,
-        max: 65535,
+        max: 65_535,
         errorMessage: "Invalid port",
       },
     };
@@ -54,7 +54,7 @@ describe("schemas and validation", () => {
       isValid: false,
       error: "Invalid port",
     });
-    expect(validateRuleValue(rule, 70000)).toEqual({
+    expect(validateRuleValue(rule, 70_000)).toEqual({
       isValid: false,
       error: "Invalid port",
     });
@@ -117,6 +117,6 @@ describe("schemas and validation", () => {
       values: "not-an-object",
     };
     const parsed = parseSerializedState(invalid);
-    expect(parsed).toBeNull();
+    expect(parsed).toBeUndefined();
   });
 });

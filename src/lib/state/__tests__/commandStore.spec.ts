@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { mockDockerCommand } from "#lib/core/__tests__/fixtures.js";
-import { CommandStore } from "#lib/state/command-store.svelte.js";
+import { CommandStore } from "#lib/state/commandStore.svelte.js";
 
 describe("command-store", () => {
   it("initializes store with default values", () => {
@@ -80,8 +80,8 @@ describe("command-store", () => {
   it("manages hovered and selected rule IDs", () => {
     const store = new CommandStore(mockDockerCommand);
 
-    expect(store.hoveredRuleId).toBeNull();
-    expect(store.selectedRuleId).toBeNull();
+    expect(store.hoveredRuleId).toBeUndefined();
+    expect(store.selectedRuleId).toBeUndefined();
 
     store.setHoveredRule("publish");
     expect(store.hoveredRuleId).toBe("publish");

@@ -1,5 +1,5 @@
 import { assembleCommand } from "#lib/core/assembler.js";
-import { evaluateRules, getDefaultValues } from "#lib/core/rules-engine.js";
+import { evaluateRules, getDefaultValues } from "#lib/core/rulesEngine.js";
 import type {
   AssembledCommand,
   CommandCategory,
@@ -13,8 +13,8 @@ export class CommandStore {
   public definition: CommandDefinition;
   public values: Record<string, unknown>;
   public shell: ShellType;
-  public hoveredRuleId: string | null;
-  public selectedRuleId: string | null;
+  public hoveredRuleId?: string;
+  public selectedRuleId?: string;
   public searchQuery: string;
 
   public evaluations: EvaluationMap;
@@ -29,18 +29,20 @@ export class CommandStore {
     this.definition = $state(initialDefinition);
     this.values = $state({
       ...getDefaultValues(initialDefinition),
-      ...(initialState?.values ?? {}),
+      ...initialState?.values,
     });
     this.shell = $state(initialState?.shell ?? "bash");
-    this.hoveredRuleId = $state(null);
-    this.selectedRuleId = $state(null);
+    this.hoveredRuleId = $state();
+    this.selectedRuleId = $state();
     this.searchQuery = $state("");
 
     this.evaluations = $derived(evaluateRules(this.definition, this.values));
     this.assembled = $derived(
       assembleCommand(this.definition, this.values, this.shell, this.evaluations),
     );
-    this.isModified = $derived(Object.values(this.evaluations).some((ev) => ev.isModified));
+    this.isModified = $derived(
+      Object.values(this.evaluations).some((evaluation) => evaluation.isModified),
+    );
     this.filteredCategories = $derived.by(() => {
       const q = this.searchQuery.trim().toLowerCase();
       if (!q) {
@@ -72,8 +74,8 @@ export class CommandStore {
   public setDefinition(newDefinition: CommandDefinition): void {
     this.definition = newDefinition;
     this.values = getDefaultValues(newDefinition);
-    this.hoveredRuleId = null;
-    this.selectedRuleId = null;
+    this.hoveredRuleId = undefined;
+    this.selectedRuleId = undefined;
     this.searchQuery = "";
   }
 
@@ -88,19 +90,19 @@ export class CommandStore {
 
   public resetAll(): void {
     this.values = getDefaultValues(this.definition);
-    this.hoveredRuleId = null;
-    this.selectedRuleId = null;
+    this.hoveredRuleId = undefined;
+    this.selectedRuleId = undefined;
   }
 
   public setShell(shell: ShellType): void {
     this.shell = shell;
   }
 
-  public setHoveredRule(ruleId: string | null): void {
+  public setHoveredRule(ruleId?: string): void {
     this.hoveredRuleId = ruleId;
   }
 
-  public setSelectedRule(ruleId: string | null): void {
+  public setSelectedRule(ruleId?: string): void {
     this.selectedRuleId = ruleId;
   }
 
@@ -112,7 +114,7 @@ export class CommandStore {
     return {
       commandId: this.definition.id,
       shell: this.shell,
-      values: JSON.parse(JSON.stringify(this.values)) as Record<string, unknown>,
+      values: structuredClone($state.snapshot(this.values)),
     };
   }
 

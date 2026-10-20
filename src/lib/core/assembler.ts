@@ -6,36 +6,39 @@ import type {
   EvaluationMap,
   ShellType,
 } from "./types.js";
-import { evaluateRules, getAllRules } from "./rules-engine.js";
+import { evaluateRules, getAllRules } from "./rulesEngine.js";
 
-let tokenIdCounter = 0;
-function createTokenId(): string {
-  tokenIdCounter += 1;
-  return `tok_${tokenIdCounter}`;
+function createTokenGenerator(): () => string {
+  let counter = 0;
+  return () => {
+    counter += 1;
+    return `tok_${counter}`;
+  };
 }
+const createTokenId = createTokenGenerator();
 
 /**
- * Экранирование аргумента командной строки для указанной оболочки
- */
-export function escapeShellArg(arg: string, shell: ShellType): string {
-  if (arg === "") {
+Экранирование аргумента командной строки для указанной оболочки
+*/
+export function escapeShellArgument(argument: string, shell: ShellType): string {
+  if (argument === "") {
     return '""';
   }
 
   // Проверяем, нужны ли кавычки (наличие пробелов или спецсимволов)
-  const needsQuotes = /[\s"'`$\\;&|<>*?~!()\[\]{}]/.test(arg);
-  if (!needsQuotes) {
-    return arg;
+  const requiresQuotes = /[\s"'`$\\;&|<>*?~!()\[\]{}]/.test(argument);
+  if (!requiresQuotes) {
+    return argument;
   }
 
   if (shell === "powershell") {
     // В PowerShell кавычки экранируются через backtick или удвоение
-    const escaped = arg.replace(/"/g, '`"');
+    const escaped = argument.replaceAll('"', '`"');
     return `"${escaped}"`;
   }
 
   // Для Bash/Zsh и single-line
-  const escaped = arg.replace(/["\\$`!]/g, "\\$&");
+  const escaped = argument.replaceAll(/["\\$`!]/g, String.raw`\$&`);
   return `"${escaped}"`;
 }
 
@@ -45,19 +48,19 @@ export const ARG_PRIORITY = {
   POSITIONAL: 3,
 } as const;
 
-export type ArgPriority = (typeof ARG_PRIORITY)[keyof typeof ARG_PRIORITY];
+export type ArgumentPriority = (typeof ARG_PRIORITY)[keyof typeof ARG_PRIORITY];
 
-type PreparedArg = {
+type PreparedArgument = {
   errorMessage?: string;
   hasError: boolean;
-  priority: ArgPriority;
+  priority: ArgumentPriority;
   rule: CommandRule;
   tokens: CommandToken[];
 };
 
 /**
- * Сборщик консольной команды
- */
+Сборщик консольной команды
+*/
 export function assembleCommand(
   definition: CommandDefinition,
   values: Record<string, unknown>,
@@ -68,7 +71,7 @@ export function assembleCommand(
   const rules = getAllRules(definition);
   const errors: Record<string, string> = {};
 
-  const preparedArgs: PreparedArg[] = [];
+  const preparedArguments: PreparedArgument[] = [];
 
   for (const rule of rules) {
     const evaluation = evals[rule.id];
@@ -84,28 +87,28 @@ export function assembleCommand(
       continue;
     }
 
-    const val = values[rule.id];
-    const ruleHasError = !evaluation.isValid;
-    const ruleErrorMsg = evaluation.validationError;
+    const value = values[rule.id];
+    const hasRuleError = !evaluation.isValid;
+    const ruleErrorMessage = evaluation.validationError;
 
     // 1. Позиционный аргумент
     if (rule.positional) {
-      const textVal = String(val ?? "").trim();
-      if (textVal.length > 0) {
-        preparedArgs.push({
+      const textValue = String(value ?? "").trim();
+      if (textValue.length > 0) {
+        preparedArguments.push({
           rule,
           priority: ARG_PRIORITY.POSITIONAL,
-          hasError: ruleHasError,
-          errorMessage: ruleErrorMsg,
+          hasError: hasRuleError,
+          errorMessage: ruleErrorMessage,
           tokens: [
             {
               id: createTokenId(),
               ruleId: rule.id,
               type: "positional",
-              text: escapeShellArg(textVal, shell),
-              rawValue: val,
-              hasError: ruleHasError,
-              errorMessage: ruleErrorMsg,
+              text: escapeShellArgument(textValue, shell),
+              rawValue: value,
+              hasError: hasRuleError,
+              errorMessage: ruleErrorMessage,
             },
           ],
         });
@@ -115,12 +118,12 @@ export function assembleCommand(
 
     // 2. Булев флаг (флаг-переключатель)
     if (rule.type === "boolean") {
-      if (val === true) {
-        preparedArgs.push({
+      if (value === true) {
+        preparedArguments.push({
           rule,
           priority: ARG_PRIORITY.BOOLEAN,
-          hasError: ruleHasError,
-          errorMessage: ruleErrorMsg,
+          hasError: hasRuleError,
+          errorMessage: ruleErrorMessage,
           tokens: [
             {
               id: createTokenId(),
@@ -129,8 +132,8 @@ export function assembleCommand(
               text: rule.flag,
               isFlag: true,
               rawValue: true,
-              hasError: ruleHasError,
-              errorMessage: ruleErrorMsg,
+              hasError: hasRuleError,
+              errorMessage: ruleErrorMessage,
             },
           ],
         });
@@ -140,8 +143,8 @@ export function assembleCommand(
 
     // 3. Key-Value Map (-e KEY=VAL)
     if (rule.type === "key-value-map") {
-      if (Array.isArray(val)) {
-        for (const item of val) {
+      if (Array.isArray(value)) {
+        for (const item of value) {
           if (!item || typeof item !== "object") {
             continue;
           }
@@ -151,12 +154,12 @@ export function assembleCommand(
           }
           const v = String(item.value ?? "");
 
-          const formattedVal = v ? `${k}=${escapeShellArg(v, shell)}` : k;
-          preparedArgs.push({
+          const formattedValue = v ? `${k}=${escapeShellArgument(v, shell)}` : k;
+          preparedArguments.push({
             rule,
             priority: ARG_PRIORITY.OPTION,
-            hasError: ruleHasError,
-            errorMessage: ruleErrorMsg,
+            hasError: hasRuleError,
+            errorMessage: ruleErrorMessage,
             tokens: [
               {
                 id: createTokenId(),
@@ -164,7 +167,7 @@ export function assembleCommand(
                 type: "flag",
                 text: rule.flag,
                 isFlag: true,
-                hasError: ruleHasError,
+                hasError: hasRuleError,
               },
               {
                 id: createTokenId(),
@@ -175,10 +178,10 @@ export function assembleCommand(
                 id: createTokenId(),
                 ruleId: rule.id,
                 type: "flag-value",
-                text: formattedVal,
+                text: formattedValue,
                 rawValue: item,
-                hasError: ruleHasError,
-                errorMessage: ruleErrorMsg,
+                hasError: hasRuleError,
+                errorMessage: ruleErrorMessage,
               },
             ],
           });
@@ -189,18 +192,18 @@ export function assembleCommand(
 
     // 4. Список значений (list)
     if (rule.type === "list") {
-      if (Array.isArray(val)) {
-        for (const item of val) {
-          const itemStr = String(item ?? "").trim();
-          if (!itemStr) {
+      if (Array.isArray(value)) {
+        for (const item of value) {
+          const itemString = String(item ?? "").trim();
+          if (!itemString) {
             continue;
           }
 
-          preparedArgs.push({
+          preparedArguments.push({
             rule,
             priority: ARG_PRIORITY.OPTION,
-            hasError: ruleHasError,
-            errorMessage: ruleErrorMsg,
+            hasError: hasRuleError,
+            errorMessage: ruleErrorMessage,
             tokens: [
               {
                 id: createTokenId(),
@@ -208,7 +211,7 @@ export function assembleCommand(
                 type: "flag",
                 text: rule.flag,
                 isFlag: true,
-                hasError: ruleHasError,
+                hasError: hasRuleError,
               },
               {
                 id: createTokenId(),
@@ -219,10 +222,10 @@ export function assembleCommand(
                 id: createTokenId(),
                 ruleId: rule.id,
                 type: "flag-value",
-                text: escapeShellArg(itemStr, shell),
+                text: escapeShellArgument(itemString, shell),
                 rawValue: item,
-                hasError: ruleHasError,
-                errorMessage: ruleErrorMsg,
+                hasError: hasRuleError,
+                errorMessage: ruleErrorMessage,
               },
             ],
           });
@@ -232,13 +235,13 @@ export function assembleCommand(
     }
 
     // 5. Обычные опции с аргументом (string, number, select, path)
-    const strVal = String(val ?? "").trim();
-    if (strVal.length > 0) {
-      preparedArgs.push({
+    const stringValue = String(value ?? "").trim();
+    if (stringValue.length > 0) {
+      preparedArguments.push({
         rule,
         priority: ARG_PRIORITY.OPTION,
-        hasError: ruleHasError,
-        errorMessage: ruleErrorMsg,
+        hasError: hasRuleError,
+        errorMessage: ruleErrorMessage,
         tokens: [
           {
             id: createTokenId(),
@@ -246,7 +249,7 @@ export function assembleCommand(
             type: "flag",
             text: rule.flag,
             isFlag: true,
-            hasError: ruleHasError,
+            hasError: hasRuleError,
           },
           {
             id: createTokenId(),
@@ -257,10 +260,10 @@ export function assembleCommand(
             id: createTokenId(),
             ruleId: rule.id,
             type: "flag-value",
-            text: escapeShellArg(strVal, shell),
-            rawValue: val,
-            hasError: ruleHasError,
-            errorMessage: ruleErrorMsg,
+            text: escapeShellArgument(stringValue, shell),
+            rawValue: value,
+            hasError: hasRuleError,
+            errorMessage: ruleErrorMessage,
           },
         ],
       });
@@ -269,7 +272,7 @@ export function assembleCommand(
 
   // Сортировка аргументов по приоритету:
   // ARG_PRIORITY.BOOLEAN -> ARG_PRIORITY.OPTION -> ARG_PRIORITY.POSITIONAL
-  preparedArgs.sort((a, b) => a.priority - b.priority);
+  preparedArguments.sort((a, b) => a.priority - b.priority);
 
   // Формирование токенов заголовка (базовый бинарник и подкоманда)
   const headerTokens: CommandToken[] = [
@@ -281,59 +284,48 @@ export function assembleCommand(
   ];
 
   if (definition.subCommand) {
-    headerTokens.push({
-      id: createTokenId(),
-      type: "whitespace",
-      text: " ",
-    });
-    headerTokens.push({
-      id: createTokenId(),
-      type: "subcommand",
-      text: definition.subCommand,
-    });
+    headerTokens.push(
+      {
+        id: createTokenId(),
+        type: "whitespace",
+        text: " ",
+      },
+      {
+        id: createTokenId(),
+        type: "subcommand",
+        text: definition.subCommand,
+      },
+    );
   }
 
-  const isMultiline = shell !== "single-line" && preparedArgs.length > 0;
+  const isMultiline = shell !== "single-line" && preparedArguments.length > 0;
   const lineContinuation = shell === "powershell" ? " `" : " \\";
 
   const lines: CommandToken[][] = [];
   const allTokens: CommandToken[] = [];
 
-  if (!isMultiline) {
-    // Однострочный режим
-    const singleLine: CommandToken[] = [...headerTokens];
-
-    for (const arg of preparedArgs) {
-      singleLine.push({
-        id: createTokenId(),
-        type: "whitespace",
-        text: " ",
-      });
-      singleLine.push(...arg.tokens);
-    }
-
-    lines.push(singleLine);
-    allTokens.push(...singleLine);
-  } else {
+  if (isMultiline) {
     // Многострочный режим
     // Первая строка: binary + subcommand + continuation
-    const firstLine: CommandToken[] = [...headerTokens];
-    firstLine.push({
-      id: createTokenId(),
-      type: "escape",
-      text: lineContinuation,
-    });
+    const firstLine: CommandToken[] = [
+      ...headerTokens,
+      {
+        id: createTokenId(),
+        type: "escape",
+        text: lineContinuation,
+      },
+    ];
     lines.push(firstLine);
 
-    preparedArgs.forEach((arg, index) => {
-      const isLast = index === preparedArgs.length - 1;
+    for (const [index, argument] of preparedArguments.entries()) {
+      const isLast = index === preparedArguments.length - 1;
       const currentLine: CommandToken[] = [
         {
           id: createTokenId(),
           type: "whitespace",
           text: "  ", // отступ 2 пробела
         },
-        ...arg.tokens,
+        ...argument.tokens,
       ];
 
       if (!isLast) {
@@ -345,19 +337,36 @@ export function assembleCommand(
       }
 
       lines.push(currentLine);
-    });
+    }
 
     // Собираем allTokens с разделителями переноса строки
-    lines.forEach((line, idx) => {
+    for (const [index, line] of lines.entries()) {
       allTokens.push(...line);
-      if (idx < lines.length - 1) {
+      if (index < lines.length - 1) {
         allTokens.push({
           id: createTokenId(),
           type: "whitespace",
           text: "\n",
         });
       }
-    });
+    }
+  } else {
+    // Однострочный режим
+    const singleLine: CommandToken[] = [...headerTokens];
+
+    for (const argument of preparedArguments) {
+      singleLine.push(
+        {
+          id: createTokenId(),
+          type: "whitespace",
+          text: " ",
+        },
+        ...argument.tokens,
+      );
+    }
+
+    lines.push(singleLine);
+    allTokens.push(...singleLine);
   }
 
   const raw = allTokens.map((t) => t.text).join("");
