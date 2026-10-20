@@ -74,7 +74,7 @@
         <button
           class="btn-icon preset-tonal-surface btn-icon-xs"
           aria-label="Сбросить значение"
-          onclick={onreset}
+          onclick={() => onreset()}
           title="Сбросить к значению по умолчанию"
           type="button"
         >

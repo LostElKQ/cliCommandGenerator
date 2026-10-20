@@ -38,7 +38,19 @@ const config = defineConfig(
     },
   },
   {
-    files: ["**/*.svelte", "**/*.svelte.{test,spec}.{js,ts}", "**/*.stories.*"],
+    files: ["**/*.svelte.{test,spec}.{js,ts}"],
+    rules: {
+      "unicorn/filename-case": [
+        "error",
+        {
+          cases: { pascalCase: true, camelCase: true },
+          checkDirectories: false,
+        },
+      ],
+    },
+  },
+  {
+    files: ["**/*.svelte", "**/*.stories.*"],
     rules: {
       "unicorn/filename-case": [
         "error",

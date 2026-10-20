@@ -2,9 +2,6 @@
   "mcpServers": {
     "svelte": {
       "serverUrl": "https://mcp.svelte.dev/mcp"
-    },
-    "storybook": {
-      "serverUrl": "http://localhost:6006/mcp"
     }
   }
 }

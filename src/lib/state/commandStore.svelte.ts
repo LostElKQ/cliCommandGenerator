@@ -84,12 +84,12 @@ export class CommandStore {
   }
 
   public resetValue(ruleId: string): void {
-    const defaults = getDefaultValues(this.definition);
+    const defaults = getDefaultValues($state.snapshot(this.definition));
     this.values[ruleId] = defaults[ruleId];
   }
 
   public resetAll(): void {
-    this.values = getDefaultValues(this.definition);
+    this.values = getDefaultValues($state.snapshot(this.definition));
     this.hoveredRuleId = undefined;
     this.selectedRuleId = undefined;
   }
@@ -124,7 +124,7 @@ export class CommandStore {
     }
     if (state.values) {
       this.values = {
-        ...getDefaultValues(this.definition),
+        ...getDefaultValues($state.snapshot(this.definition)),
         ...state.values,
       };
     }
