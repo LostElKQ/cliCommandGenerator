@@ -1,4 +1,8 @@
 import type { Preview } from "@storybook/sveltekit";
+// eslint-disable-next-line @typescript-eslint/no-restricted-imports
+import "../src/routes/layout.css";
+
+document.documentElement.dataset["theme"] = "catppuccin";
 
 const preview: Preview = {
   parameters: {

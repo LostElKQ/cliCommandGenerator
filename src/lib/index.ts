@@ -5,3 +5,4 @@ export * from "./core/assembler.js";
 export * from "./state/urlSync.js";
 export * from "./state/commandStore.svelte.js";
 export * from "./data/registry.js";
+export * from "./components/inputs/index.js";

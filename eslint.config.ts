@@ -29,10 +29,16 @@ const config = defineConfig(
       ],
       "unicorn/prefer-ternary": "off",
       "unicorn/prefer-logical-operator-over-ternary": "off",
+      "unicorn/consistent-boolean-name": [
+        "error",
+        {
+          ignore: ["value"],
+        },
+      ],
     },
   },
   {
-    files: ["**/*.svelte", "**/*.svelte.{test,spec}.{js,ts}"],
+    files: ["**/*.svelte", "**/*.svelte.{test,spec}.{js,ts}", "**/*.stories.*"],
     rules: {
       "unicorn/filename-case": [
         "error",
@@ -56,6 +62,7 @@ const config = defineConfig(
           },
         },
       ],
+      "unicorn/no-top-level-assignment-in-function": "off",
     },
   },
   {
