@@ -37,10 +37,12 @@
 </script>
 
 <div
+  id="rule-{rule.id}"
   class="relative flex flex-col gap-2 card p-3.5 transition-all duration-150 {borderClasses} {evaluation &&
   !evaluation.isEnabled
     ? 'opacity-60'
     : ''}"
+  data-rule-id={rule.id}
   {onmouseenter}
   {onmouseleave}
   role="group"
