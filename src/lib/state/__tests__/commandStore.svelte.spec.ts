@@ -88,6 +88,10 @@ describe("command-store", () => {
 
     store.setSelectedRule("detach");
     expect(store.selectedRuleId).toBe("detach");
+
+    store.jumpToRule("name");
+    expect(store.selectedRuleId).toBe("name");
+    expect(store.jumpTarget?.ruleId).toBe("name");
   });
 
   it("serializes and loads state correctly", () => {

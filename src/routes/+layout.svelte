@@ -16,7 +16,9 @@
 </svelte:head>
 
 {@render children()}
-<DemoLinks />
+{#if page.url.pathname.startsWith("/demo")}
+  <DemoLinks />
+{/if}
 
 <div class="hidden">
   {#each locales as locale (locale)}

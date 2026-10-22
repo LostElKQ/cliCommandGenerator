@@ -102,16 +102,3 @@ export function buildShareUrl(currentUrl: string, state: SerializedCommandState)
   url.hash = encoded;
   return url.href;
 }
-
-/**
-Плавное обновление URL hash в браузере без добавления лишних записей в историю
-*/
-export function updateBrowserUrlHash(state: SerializedCommandState): void {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  const encoded = encodeStateToHash(state);
-  const newUrl = `${location.pathname}${location.search}#${encoded}`;
-  history.replaceState(undefined, "", newUrl);
-}

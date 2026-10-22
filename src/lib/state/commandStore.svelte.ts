@@ -16,6 +16,7 @@ export class CommandStore {
   public hoveredRuleId?: string;
   public selectedRuleId?: string;
   public searchQuery: string;
+  public jumpTarget?: { ruleId: string };
 
   public evaluations: EvaluationMap;
   public assembled: AssembledCommand;
@@ -35,6 +36,7 @@ export class CommandStore {
     this.hoveredRuleId = $state();
     this.selectedRuleId = $state();
     this.searchQuery = $state("");
+    this.jumpTarget = $state();
 
     this.evaluations = $derived(evaluateRules(this.definition, this.values));
     this.assembled = $derived(
@@ -76,6 +78,7 @@ export class CommandStore {
     this.values = getDefaultValues(newDefinition);
     this.hoveredRuleId = undefined;
     this.selectedRuleId = undefined;
+    this.jumpTarget = undefined;
     this.searchQuery = "";
   }
 
@@ -92,6 +95,7 @@ export class CommandStore {
     this.values = getDefaultValues($state.snapshot(this.definition));
     this.hoveredRuleId = undefined;
     this.selectedRuleId = undefined;
+    this.jumpTarget = undefined;
   }
 
   public setShell(shell: ShellType): void {
@@ -104,6 +108,11 @@ export class CommandStore {
 
   public setSelectedRule(ruleId?: string): void {
     this.selectedRuleId = ruleId;
+  }
+
+  public jumpToRule(ruleId: string): void {
+    this.selectedRuleId = ruleId;
+    this.jumpTarget = { ruleId };
   }
 
   public setSearchQuery(query: string): void {

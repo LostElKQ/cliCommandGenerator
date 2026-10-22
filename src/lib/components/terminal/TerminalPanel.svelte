@@ -31,11 +31,7 @@
   const activeValue = $derived(activeRuleId ? commandStore.values[activeRuleId] : undefined);
 
   function handleJump(ruleId: string): void {
-    commandStore.setSelectedRule(ruleId);
-    const element = document.querySelector(`[data-rule-id="${CSS.escape(ruleId)}"]`);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
+    commandStore.jumpToRule(ruleId);
   }
 </script>
 

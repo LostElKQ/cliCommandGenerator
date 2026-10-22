@@ -8,3 +8,4 @@ export * from "./data/registry.js";
 export * from "./components/inputs/index.js";
 export * from "./components/config/index.js";
 export * from "./components/terminal/index.js";
+export * from "./components/layout/index.js";

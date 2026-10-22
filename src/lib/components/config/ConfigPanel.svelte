@@ -1,6 +1,7 @@
 <script lang="ts">
   import { ChevronsDown, ChevronsUp, RotateCcw, SearchX } from "@lucide/svelte";
   import { Accordion } from "@skeletonlabs/skeleton-svelte";
+  import { tick, untrack } from "svelte";
   import CategorySection from "./CategorySection.svelte";
   import SearchInput from "./SearchInput.svelte";
   import type { CommandCategory } from "#lib/core/types.js";
@@ -46,6 +47,45 @@
       commandStore.resetValue(rule.id);
     }
   }
+
+  $effect(() => {
+    const target = commandStore.jumpTarget;
+    if (!target) return;
+
+    const ruleId = target.ruleId;
+
+    if (commandStore.searchQuery) {
+      const isVisibleInSearch = commandStore.filteredCategories.some((cat) =>
+        cat.rules.some((rule) => rule.id === ruleId),
+      );
+      if (!isVisibleInSearch) {
+        commandStore.setSearchQuery("");
+      }
+    }
+
+    const category = commandStore.definition.categories.find((cat) =>
+      cat.rules.some((rule) => rule.id === ruleId),
+    );
+
+    if (category && !untrack(() => expandedCategories).includes(category.id)) {
+      userExpandedCategories = [...expandedCategories, category.id];
+    }
+
+    void tick().then(() => {
+      const element = document.querySelector<HTMLElement>(`[data-rule-id="${CSS.escape(ruleId)}"]`);
+      if (!element) {
+        return;
+      }
+
+      element.scrollIntoView({ behavior: "smooth", block: "center" });
+      const focusable = element.querySelector<HTMLElement>("input, select, textarea, button");
+      focusable?.focus({ preventScroll: true });
+
+      setTimeout(() => {
+        element.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 160);
+    });
+  });
 </script>
 
 <div class="flex h-full flex-col gap-4">
@@ -128,7 +168,6 @@
             hoveredRuleId={commandStore.hoveredRuleId}
             onresetcategory={handleResetCategory}
             onresetrule={(ruleId) => commandStore.resetValue(ruleId)}
-            onsethovered={(ruleId) => commandStore.setHoveredRule(ruleId)}
             onvaluechange={(ruleId, value_) => commandStore.setValue(ruleId, value_)}
             selectedRuleId={commandStore.selectedRuleId}
             values={commandStore.values}

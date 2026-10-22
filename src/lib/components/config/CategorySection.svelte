@@ -11,7 +11,6 @@
     hoveredRuleId?: string;
     onresetcategory: (category: CommandCategory) => void;
     onresetrule: (ruleId: string) => void;
-    onsethovered: (ruleId?: string) => void;
     onvaluechange: (ruleId: string, value: unknown) => void;
     selectedRuleId?: string;
     values: Record<string, unknown>;
@@ -23,7 +22,6 @@
     hoveredRuleId,
     onresetcategory,
     onresetrule,
-    onsethovered,
     onvaluechange,
     selectedRuleId,
     values,
@@ -32,6 +30,8 @@
   const modifiedCount = $derived(
     category.rules.filter((rule) => evaluations[rule.id]?.isModified).length,
   );
+
+  let highlightedRuleId = $derived(hoveredRuleId);
 </script>
 
 <Accordion.Item
@@ -86,11 +86,11 @@
             {#if evaluations[rule.id]?.isVisible !== false}
               <RuleField
                 evaluation={evaluations[rule.id]}
-                isHovered={hoveredRuleId === rule.id}
+                isHovered={hoveredRuleId === rule.id || highlightedRuleId === rule.id}
                 isSelected={selectedRuleId === rule.id}
                 onchange={(value_) => onvaluechange(rule.id, value_)}
-                onmouseenter={() => onsethovered(rule.id)}
-                onmouseleave={() => onsethovered()}
+                onmouseenter={() => (highlightedRuleId = rule.id)}
+                onmouseleave={() => (highlightedRuleId = undefined)}
                 onreset={() => onresetrule(rule.id)}
                 {rule}
                 value={values[rule.id]}
