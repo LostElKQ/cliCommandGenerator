@@ -23,11 +23,7 @@
     "sourceMap": true,
     "strict": true,
     "target": "es2025",
-    "types": ["node", "$app/types"],
-    "paths": {
-      "#lib": ["./src/lib"],
-      "#lib/*": ["./src/lib/*"]
-    }
+    "types": ["node", "$app/types"]
   },
   "extends": "$app/tsconfig",
   "include": ["src", "*.config.ts", ".storybook/*.ts"],

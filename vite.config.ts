@@ -1,3 +1,4 @@
+import { paraglideVitePlugin } from "@inlang/paraglide-js";
 import { storybookTest } from "@storybook/addon-vitest/vitest-plugin";
 import adapter from "@sveltejs/adapter-static";
 import { sveltekit } from "@sveltejs/kit/vite";
@@ -28,6 +29,11 @@ const config = defineConfig({
           "" | `/${string}`,
       },
       preprocess: [vitePreprocess({ script: true })],
+    }),
+    paraglideVitePlugin({
+      project: "./project.inlang",
+      outdir: "./src/lib/paraglide",
+      emitTsDeclarations: true,
     }),
   ],
   test: {
