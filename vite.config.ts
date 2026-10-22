@@ -5,6 +5,7 @@ import { vitePreprocess } from "@sveltejs/vite-plugin-svelte";
 import tailwindcss from "@tailwindcss/vite";
 import { playwright } from "@vitest/browser-playwright";
 import path from "node:path";
+import process from "node:process";
 import { defineConfig } from "vitest/config";
 
 const config = defineConfig({
@@ -23,7 +24,8 @@ const config = defineConfig({
         remoteFunctions: true,
       },
       paths: {
-        origin: "http://localhost:5173",
+        base: (process.argv.includes("dev") ? "" : (process.env["BASE_PATH"] ?? "")) as
+          "" | `/${string}`,
       },
       preprocess: [vitePreprocess({ script: true })],
     }),

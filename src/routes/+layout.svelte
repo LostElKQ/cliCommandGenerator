@@ -1,24 +1,31 @@
 <script lang="ts">
+  import { afterNavigate } from "$app/navigation";
   import type { Path } from "$app/types";
   import { resolve } from "$app/paths";
   import { page } from "$app/state";
   import { locales, localizeHref } from "#lib/paraglide/runtime.js";
   import "./layout.css";
-  import DemoLinks from "./demo/DemoLinks.svelte";
   import favicon from "#lib/assets/favicon.svg";
   import type { LayoutProps } from "./$types";
 
   let { children }: LayoutProps = $props();
+
+  afterNavigate(async () => {
+    if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) {
+      return;
+    }
+    const registration = await navigator.serviceWorker.getRegistration();
+    await registration?.update();
+  });
 </script>
 
 <svelte:head>
   <link href={favicon} rel="icon" />
+  <link href="/manifest.json" rel="manifest" />
+  <meta name="theme-color" content="#11111b" />
 </svelte:head>
 
 {@render children()}
-{#if page.url.pathname.startsWith("/demo")}
-  <DemoLinks />
-{/if}
 
 <div class="hidden">
   {#each locales as locale (locale)}

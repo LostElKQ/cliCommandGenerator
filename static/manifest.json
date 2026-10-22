@@ -1,0 +1,16 @@
+{
+  "name": "CLI Command Generator",
+  "short_name": "CLIGen",
+  "description": "Интерактивный конструктор и валидатор консольных команд (Docker, Git, FFmpeg)",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#11111b",
+  "theme_color": "#89b4fa",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

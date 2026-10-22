@@ -30,5 +30,6 @@
     }
   },
   "extends": "$app/tsconfig",
-  "include": ["src", "*.config.ts", ".storybook/*.ts"]
+  "include": ["src", "*.config.ts", ".storybook/*.ts"],
+  "exclude": ["src/service-worker"]
 }
