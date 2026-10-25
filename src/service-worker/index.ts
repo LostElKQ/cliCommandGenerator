@@ -1,15 +1,13 @@
 import { self } from "$app/service-worker";
 import { version } from "$app/env";
 import { assets, immutable } from "$app/manifest";
-import { resolve } from "$app/paths";
+import { asset, resolve } from "$app/paths";
 
 const CACHE = `cache-${version}`;
 
-const resolvePath = resolve as (path: string) => string;
-
 const ASSETS: string[] = [
-  ...immutable.map((asset) => resolvePath(asset.path)),
-  ...assets.map((asset) => resolvePath(asset.path)),
+  ...immutable.map(({ path }) => resolve(path as "")),
+  ...assets.map(({ path }) => asset(path)),
 ];
 
 async function addFilesToCache(): Promise<void> {

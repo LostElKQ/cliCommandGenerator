@@ -1,11 +1,10 @@
 <script lang="ts">
   import { afterNavigate } from "$app/navigation";
   import type { Path } from "$app/types";
-  import { resolve } from "$app/paths";
+  import { asset, resolve } from "$app/paths";
   import { page } from "$app/state";
   import { locales, localizeHref } from "#lib/paraglide/runtime.js";
   import "./layout.css";
-  import favicon from "#lib/assets/favicon.svg";
   import type { LayoutProps } from "./$types";
 
   let { children }: LayoutProps = $props();
@@ -20,8 +19,8 @@
 </script>
 
 <svelte:head>
-  <link href={favicon} rel="icon" />
-  <link href="/manifest.json" rel="manifest" />
+  <link href={asset("favicon.svg")} rel="icon" />
+  <link href={asset("manifest.json")} rel="manifest" />
   <meta name="theme-color" content="#11111b" />
 </svelte:head>
 

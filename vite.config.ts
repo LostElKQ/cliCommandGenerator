@@ -27,7 +27,6 @@ const config = defineConfig({
       paths: {
         base: (process.argv.includes("dev") ? "" : (process.env["BASE_PATH"] ?? "")) as
           "" | `/${string}`,
-        relative: false,
       },
       preprocess: [vitePreprocess({ script: true })],
     }),
