@@ -19,7 +19,8 @@
 </script>
 
 <svelte:head>
-  <link href={asset("favicon.svg")} rel="icon" />
+  <link href={asset("favicon.svg")} rel="icon" type="image/svg+xml" />
+  <link href={asset("icon-192.png")} rel="apple-touch-icon" />
   <link href={asset("manifest.json")} rel="manifest" />
   <meta name="theme-color" content="#11111b" />
 </svelte:head>
